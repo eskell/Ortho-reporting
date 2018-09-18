@@ -1,0 +1,12 @@
+name: sorce-ortho_partnership
+title: SORCE-Ortho Partnership
+username:
+account: becertain
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 416161
+bundleId: 1590929
+url: https://becertain.shinyapps.io/sorce-ortho_partnership/
+when: 1537241613.56974
+asMultiple: FALSE
+asStatic: FALSE

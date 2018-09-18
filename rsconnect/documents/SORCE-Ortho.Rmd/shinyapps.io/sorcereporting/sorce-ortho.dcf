@@ -1,0 +1,12 @@
+name: sorce-ortho
+title:
+username:
+account: sorcereporting
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 371023
+bundleId: 1527663
+url: https://sorce.shinyapps.io/sorce-ortho/
+when: 1533867538.74728
+asMultiple: FALSE
+asStatic: FALSE

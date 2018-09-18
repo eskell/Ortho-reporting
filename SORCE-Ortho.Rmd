@@ -1,0 +1,241 @@
+---
+title: "Ortho-SORCE partnership: monthly report"
+output: 
+  html_notebook:
+    theme: flatly
+    toc: yes
+    number_sections: true
+    toc_float:
+      collapsed: false
+runtime: shiny
+---
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+#library set-up
+library(knitr)
+library(dplyr)
+library(plotly, suppressPackageStartupMessages(" "))
+library(timevis)
+library(kableExtra)
+library(readxl)
+library(car)
+library(shiny, suppressPackageStartupMessages(" "))
+library(rsconnect)
+library(formattable, suppressPackageStartupMessages(" "))
+library(flextable, suppressPackageStartupMessages(" "))
+
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r basic table function}
+stdtable <- function(x, y) {
+  #create table with standard formatting
+x <- regulartable(y)
+#add theme
+x <- theme_box(x)
+#font size
+x <- fontsize(x, size = 13, part = "all")
+#bold header
+x <- bold(x, part = "header")
+#left alignment, all
+x <- align(x, align = "left", part = "all")
+#header background color = dark grey
+x <-  bg(x, bg = "#2C3E50", part = "header")
+#header text color = white
+x <- color(x, color = "#FFFFFF", part = "header")
+#autofit contents
+autofit(x)
+}
+```
+
+```{r status conditional formatting function}
+statuscf <- function(x) {
+  x <- bg(x, j = "Status", bg = "#76CA71", i = ~ Status == "On track")
+  x <- bg(x, j = "Status", bg = "#F29940", i = ~ Status == "Delayed")
+  x <- bg(x, j = "Status", bg = "#14601C", i = ~ Status == "Complete")
+}
+```
+
+
+# Staffing summary
+
+```{r staffing, fig.align='left'}
+#read in all staff data
+staff <- read_excel("OSM project overview.xlsx", sheet = "Staff") 
+
+#select needed staff data
+staff <- staff %>% 
+  filter(Org == "SORCE", FTE != "0") %>% 
+  select(Name, Role, `Primary responsibilities`, FTE) %>% 
+  arrange(Name)
+
+#convert FTE to percent formatting
+staff$FTE <- percent(staff$FTE, digits = 0)
+
+#create table using standard function 
+stafftable <- stdtable(stafftable, staff)
+#insert table 
+stafftable
+```
+
+# Partnership projects
+
+```{r ortho partnership projects}
+#read in all project data
+projects <- read_excel("OSM project overview.xlsx", sheet = "All")
+
+#select needed projects data
+projects <- projects %>% 
+  select(PI, Name, Owner, CurrentPhase, ProjectDescription, StartDate, EndDate, Type) %>% 
+  filter(PI != "All") %>% 
+    arrange(PI)
+
+#convert date formatting 
+projects$StartDate <- format(projects$StartDate, "%m/%d/%y")
+projects$EndDate <- format(projects$EndDate, "%m/%d/%y")
+
+#re-name columns
+colnames(projects)[colnames(projects) == 'PI'] <- 'Division'
+colnames(projects)[colnames(projects) == 'CurrentPhase'] <- 'Status'
+colnames(projects)[colnames(projects) == 'ProjectDescription'] <- 'Description'
+colnames(projects)[colnames(projects) == 'StartDate'] <- 'Start'
+colnames(projects)[colnames(projects) == 'EndDate'] <- 'End'
+colnames(projects)[colnames(projects) == 'Owner'] <- 'PI/Lead'
+
+#create table using standard function 
+projectstable <- stdtable(projectstable, projects)
+
+#custom: merge identical cells in first column
+projectstable <- merge_v(projectstable, j = 1)
+
+#add status column formatting using function
+projectstable <- statuscf(projectstable)
+
+autofit(projectstable)
+
+```
+
+# Publications 
+
+```{r pubs}
+#read in all pubs data
+pubs <- read_excel("OSM project overview.xlsx", sheet = "Pubs")
+
+#create table using standard function 
+pubstable <- stdtable(stafftable, pubs)
+
+#custom: merge identical cells in first column
+pubstable <- merge_v(pubstable, j = 1)
+autofit(pubstable)
+```
+
+# Research infrastructure and data management 
+```{r database lib}
+#read in all database project data
+databaselib <- read_excel("OSM project overview.xlsx", sheet = "6.Ortho dataset library")
+
+#format dates
+databaselib$Due <- format(databaselib$Due, "%m/%d/%y")
+
+#select needed data + apply conditional formatting
+databaselib <- databaselib %>% 
+  select(Dataset, Task, Owner, Due, Status)
+
+#create table using standard function 
+databaselibtable <- stdtable(databaselibtable, databaselib)
+
+#add status column formatting using function
+databaselibtable <- statuscf(databaselibtable)
+
+#custom: merge identical cells in first column
+databaselibtable <- merge_v(databaselibtable, j = 1)
+
+#custom: make font size in column 1 bigger
+databaselibtable <- fontsize(databaselibtable, j = 1, size = 17)
+
+autofit(databaselibtable)
+```
+
+# Citation list
+[all publications completed under the Ortho-SORCE partnership will be cited here]
+
+```{r archive ALL TABLES, eval = F, include = F}
+#archived, keeping in case change back to kable extra is needed
+####PUBLICATIONS####
+#archived with use of flextable; changed to pubs1
+pubs1 <- read_excel("OSM project overview.xlsx", sheet = "Pubs")
+
+kable(pubs1) %>%
+  kable_styling(bootstrap_options = c("condensed", "hover", "bordered"), full_width = F, position = "left", font_size = 13) %>% 
+  collapse_rows(columns = 1:2, valign = "top")
+
+#####STAFF######
+#read in all staff data, changed to staff1
+staff1 <- read_excel("OSM project overview.xlsx", sheet = "Staff") 
+
+#select needed staff data
+staff1 <- staff1 %>% 
+  filter(Org == "SORCE", FTE != "0") %>% 
+  select(Name, Role, FTE) %>% 
+  arrange(Name)
+
+#convert FTE to percent formatting
+staff1$FTE <- percent(staff1$FTE, digits = 0)
+#make FTE table
+kable(staff1) %>%
+  kable_styling(bootstrap_options = c("condensed", "hover", "bordered"), full_width = F, position = "left", font_size = 13)
+
+######PROJECTS#####
+#changes to projects1
+
+#read in all project data
+projects1 <- read_excel("OSM project overview.xlsx", sheet = "All")
+
+#select needed projects1 data
+projects1 <- projects1 %>% 
+  select(PI, Name, Owner, CurrentPhase, ProjectDescription, StartDate, EndDate, Type) %>% 
+  filter(PI != "All") %>% 
+    arrange(PI)
+
+#convert date formatting 
+projects1$StartDate <- format(projects1$StartDate, "%m/%d/%y")
+projects1$EndDate <- format(projects1$EndDate, "%m/%d/%y")
+
+#re-name columns
+colnames(projects1)[colnames(projects1) == 'PI'] <- 'Division'
+colnames(projects1)[colnames(projects1) == 'CurrentPhase'] <- 'Status'
+colnames(projects1)[colnames(projects1) == 'ProjectDescription'] <- 'Description'
+colnames(projects1)[colnames(projects1) == 'StartDate'] <- 'Start'
+colnames(projects1)[colnames(projects1) == 'EndDate'] <- 'End'
+colnames(projects1)[colnames(projects1) == 'Owner'] <- 'PI/Lead'
+
+#create conditional formatting
+projects1 <- projects1 %>% 
+  mutate(
+    Status = cell_spec(projects1$Status, background = ifelse(projects1$Status == "On track", "lightgreen", ""), color = "black"))
+
+#make project table
+kable(projects1,  escape = FALSE) %>%
+kable_styling(bootstrap_options = c("condensed", "hover", "bordered", "responsive"), full_width = F, position = "left", font_size = 13) %>% 
+  collapse_rows(columns = 1:2, valign = "top")
+
+#######DATABASE MGMT PROJECT######
+#changed to databaselib1
+#read in all database project data
+databaselib1 <- read_excel("OSM project overview.xlsx", sheet = "6.Ortho dataset library")
+
+#format dates
+databaselib1$Due <- format(databaselib1$Due, "%m/%d/%y")
+
+#select needed data + apply conditional formatting
+databaselib1 <- databaselib1 %>% 
+  select(Dataset, Task, Owner, Due, Status) %>% 
+  mutate(
+    Status = cell_spec(databaselib1$Status, background = ifelse(databaselib$Status == "On track", "lightgreen", ""), color = "black")) %>% 
+  arrange(Dataset) 
+
+#make database project table
+kable(databaselib1, escape = FALSE) %>%
+kable_styling(bootstrap_options = c("bordered", "condensed", "responsive"), full_width = T, position = "left", font_size = 13) %>% 
+  collapse_rows(columns = 1:3, valign = "middle")
+```
+
